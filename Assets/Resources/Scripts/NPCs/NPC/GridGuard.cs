@@ -66,7 +66,7 @@ public class GridGuard : Guard
 
     public override LogSnapshot LogNpcProgress()
     {
-        return new LogSnapshot(GetTravelledDistance(), StealthArea.episodeTime, Data,"",0,0f,0f, m_FoundHidingSpots, m_grid.GetAverageStaleness());
+        return new LogSnapshot(GetTravelledDistance(), StealthArea.episodeTime, Data,"",0,0f,0f, m_FoundHidingSpots, m_grid.GetAverageStaleness(), 0f, 0);
     }
 
     public void IncrementSeenNodes()

@@ -15,7 +15,7 @@ public static class Properties
     public static float InterPolygonOffset = 0.3f;
 
     // The number of episodes to record
-    public static int EpisodesCount = 100;
+    public static int EpisodesCount = 10;
 
     // Staleness Properties
     // Staleness range
@@ -53,7 +53,7 @@ public static class Properties
     // Set the default value for view radius for the Npcs
     public static void SetViewRadius(float maxWidth)
     {
-        ViewRadius = maxWidth * viewRadiusFractionOfMap;
+        //ViewRadius = maxWidth * viewRadiusFractionOfMap;
     }
 
     public static float ViewRadius = 15f;
@@ -81,7 +81,7 @@ public static class Properties
     //----------------------------------------------------------
 
     // The duration of an episode.
-    public static float EpisodeLength = 100f;
+    public static float EpisodeLength = 250f;
 
     // The agent difference threshold
     public static readonly int AgeThreshold = 10;

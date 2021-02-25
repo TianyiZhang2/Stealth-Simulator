@@ -76,7 +76,7 @@ public class VisMeshGuard : Guard
 
     public override LogSnapshot LogNpcProgress()
     {
-        return new LogSnapshot(GetTravelledDistance(), StealthArea.episodeTime, Data,"",0,0f,0f, m_FoundHidingSpots, m_VisMesh.GetAverageStaleness());
+        return new LogSnapshot(GetTravelledDistance(), StealthArea.episodeTime, Data,"",0,0f,0f, m_FoundHidingSpots, m_VisMesh.GetAverageStaleness(), 0f, 0);
     }
 
     public override void SetSeenPortion()

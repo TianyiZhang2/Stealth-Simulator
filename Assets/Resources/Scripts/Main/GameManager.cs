@@ -215,7 +215,9 @@ public enum IntruderPlanner
 {
     Random,
     UserInput,
-    Heuristic
+    Heuristic,
+    LookAheadHybrid5,
+    LookAheadHybrid10
 }
 
 // Heuristic for path finding 

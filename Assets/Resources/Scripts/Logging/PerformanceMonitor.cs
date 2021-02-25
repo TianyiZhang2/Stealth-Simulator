@@ -78,7 +78,7 @@ public class PerformanceMonitor : MonoBehaviour
             string data = "";
 
             data +=
-                "gameCode,guardType,guardId,guardPlanner,guardHeuristic,guardPathFollowing,elapsedTime,distanceTravelled,state,NoTimesSpotted,alertTime,searchedTime,foundHidingSpots,stalenessAverages\n";
+                "gameCode,guardType,guardId,guardPlanner,guardHeuristic,guardPathFollowing,elapsedTime,distanceTravelled,state,NoTimesSpotted,alertTime,searchedTime,foundHidingSpots,stalenessAverages,rescuedTime,rescueCalls\n";
 
             for (int i = 0; i < snapshots.Count; i++)
             {
@@ -122,11 +122,15 @@ public struct LogSnapshot
     // Average staleness of the map
     public float StalenessAverage;
 
+    public float RescuedTime;
+    public int RescueCalls;
+
 
     public LogSnapshot(float travelledDistance, float elapsedTime, NpcData npcData, string npcState, int noTimesSpotted,
         float alertTime,
         float searchTime, int foundHidingSpots,
-        float stalenessAverage)
+        float stalenessAverage,
+        float rescuedTime, int rescueCalls)
     {
         TravelledDistance = travelledDistance;
         ElapsedTime = elapsedTime;
@@ -137,6 +141,8 @@ public struct LogSnapshot
         FoundHidingSpots = foundHidingSpots;
         StalenessAverage = stalenessAverage;
         NoTimesSpotted = noTimesSpotted;
+        RescuedTime = rescuedTime;
+        RescueCalls = rescueCalls;
     }
 
     public override string ToString()
@@ -144,7 +150,8 @@ public struct LogSnapshot
         string output = NpcDetail + "," + ElapsedTime + "," +
                         TravelledDistance + "," + State + "," + NoTimesSpotted + "," + AlertTime + "," + SearchTime +
                         "," + FoundHidingSpots +
-                        "," + StalenessAverage;
+                        "," + StalenessAverage +
+                        "," + RescuedTime + "," + RescueCalls;
 
         return output;
     }
