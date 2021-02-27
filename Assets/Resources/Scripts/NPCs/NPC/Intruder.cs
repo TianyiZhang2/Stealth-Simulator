@@ -371,7 +371,8 @@ public class Intruder : NPC
                 }
                 Vector2 nextPos = list[i].Key;
                 List<Vector2> path = new List<Vector2> { transform.position };
-                path.AddRange(PathFinding.GetShortestPath(World.GetNavMesh(), transform.position, nextPos));
+                //path.AddRange(PathFinding.GetShortestPath(World.GetNavMesh(), transform.position, nextPos));
+                PathFinding.GetShortestPath(World.GetNavMesh(), transform.position, nextPos, path);
                 float pathHeuristic = 0;
                 int numPoints = 0;
                 //float max = 0;
