@@ -223,8 +223,26 @@ public enum IntruderPlanner
     Random,
     UserInput,
     Heuristic,
-    LookAheadHybrid5,
-    LookAheadHybrid10
+    // Considers all observer positions
+    // Calls Wael's algorithm when no good points nearby
+    // Heuristic uses unseen -> seen metric
+    LookAhead5, 
+    LookAhead10,
+    // Considers future observer positions based on observers' FoV
+    // Calls Wael's algorithm when no good points nearby
+    // Heuristic uses unseen -> seen metric
+    DeadReckoning5, 
+    DeadReckoning10,
+    // Considers all observer positions
+    // Calls Wael's algorithm whenever seen
+    // Heuristic uses max of path points
+    RescueWhenSeen5,
+    RescueWhenSeen10,
+    // Considers all observer positions
+    // Calls Wael's algorithm when no good points nearby
+    // Heuristic uses max of path points
+    MaxPath5,
+    MaxPath10
 }
 
 // Heuristic for path finding 

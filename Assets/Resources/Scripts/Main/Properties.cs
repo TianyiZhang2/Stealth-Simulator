@@ -64,7 +64,7 @@ public static class Properties
     // Set the default value for view radius for the Npcs
     public static void SetViewRadius(float maxWidth)
     {
-        ViewRadius = maxWidth * viewRadiusFractionOfMap;
+        //ViewRadius = maxWidth * viewRadiusFractionOfMap;
     }
 
     public static float ViewRadius = 15f;
@@ -115,5 +115,5 @@ public static class Properties
     public static int EpisodesCount = 50;
 
     // The duration of an episode.
-    public static float EpisodeLength = 400f;
+    public static float EpisodeLength = 180f;
 }
