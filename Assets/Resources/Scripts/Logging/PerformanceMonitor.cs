@@ -124,13 +124,13 @@ public struct LogSnapshot
 
     public float RescuedTime;
     public int RescueCalls;
-
+    public int AlcoveCount;
 
     public LogSnapshot(float travelledDistance, float elapsedTime, NpcData npcData, string npcState, int noTimesSpotted,
         float alertTime,
         float searchTime, int foundHidingSpots,
         float stalenessAverage,
-        float rescuedTime, int rescueCalls)
+        float rescuedTime, int rescueCalls, int alcoveCount)
     {
         TravelledDistance = travelledDistance;
         ElapsedTime = elapsedTime;
@@ -143,6 +143,7 @@ public struct LogSnapshot
         NoTimesSpotted = noTimesSpotted;
         RescuedTime = rescuedTime;
         RescueCalls = rescueCalls;
+        AlcoveCount = alcoveCount;
     }
 
     public override string ToString()
@@ -151,7 +152,7 @@ public struct LogSnapshot
                         TravelledDistance + "," + State + "," + NoTimesSpotted + "," + AlertTime + "," + SearchTime +
                         "," + FoundHidingSpots +
                         "," + StalenessAverage +
-                        "," + RescuedTime + "," + RescueCalls;
+                        "," + RescuedTime + "," + RescueCalls + "," + AlcoveCount;
 
         return output;
     }

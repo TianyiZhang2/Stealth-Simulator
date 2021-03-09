@@ -36,9 +36,13 @@ public class Intruder : NPC
 
     // Settings for lookahead algorithms
     private float lookAheadStepSize = 0.5f;
+    // Metric for times Wael's algorithm is called
     private bool rescuing = false;
     private float rescuedTime = 0f;
     private int rescueCalls = 0;
+    // Metric for times we enter an alcove
+    private bool inAlcove = false;
+    private int alcoveCount = 0;
  
     private float prevTime;
 
@@ -80,6 +84,8 @@ public class Intruder : NPC
         rescuing = false;
         rescuedTime = 0f;
         rescueCalls = 0;
+        inAlcove = false;
+        alcoveCount = 0;
 
         prevGuardPos = m_guards[0].transform.position;
         cancelExperiment = false;
@@ -110,6 +116,18 @@ public class Intruder : NPC
         if (rescuing)
         {
             rescuedTime += timeDelta;
+        }
+        // Check if intruder is in alcove
+        Vector2 topAlcove = new Vector2(-15, 3);
+        Vector2 bottomAlcove = new Vector2(-11, -5);
+        if (!inAlcove && (Vector2.Distance(transform.position, topAlcove) < 5 || Vector2.Distance(transform.position, bottomAlcove) < 3))
+        {
+            inAlcove = true;
+            alcoveCount++;
+        }
+        else if (inAlcove && Vector2.Distance(transform.position, topAlcove) >= 5 && Vector2.Distance(transform.position, bottomAlcove) >= 3)
+        {
+            inAlcove = false;
         }
     }
 
@@ -289,10 +307,10 @@ public class Intruder : NPC
     {
         if(cancelExperiment)
         {
-            rescueCalls = -1;
+            alcoveCount = -1;
         }
         return new LogSnapshot(GetTravelledDistance(), StealthArea.episodeTime, Data, m_state.GetState().ToString(),m_NoTimesSpotted,
-            m_AlertTime, m_SearchedTime, 0, 0f, rescuedTime, rescueCalls);
+            m_AlertTime, m_SearchedTime, 0, 0f, rescuedTime, rescueCalls, alcoveCount);
     }
 
     private void ExecuteHidingStrategy()
@@ -301,7 +319,9 @@ public class Intruder : NPC
         {
             case IntruderPlanner.LookAhead5: LookAheadHybrid(5); break;
             case IntruderPlanner.LookAhead10: LookAheadHybrid(10); break;
+            case IntruderPlanner.DeadReckoning3: LookAheadHybrid(3, deadReckoning: true); break;
             case IntruderPlanner.DeadReckoning5: LookAheadHybrid(5, deadReckoning: true); break;
+            case IntruderPlanner.DeadReckoning7: LookAheadHybrid(7, deadReckoning: true); break;
             case IntruderPlanner.DeadReckoning10: LookAheadHybrid(10, deadReckoning: true); break;
             case IntruderPlanner.RescueWhenSeen5: LookAheadHybrid(5, rescueWhenSeen: true, considerUnseenToSeen: false); break;
             case IntruderPlanner.RescueWhenSeen10: LookAheadHybrid(10, rescueWhenSeen: true, considerUnseenToSeen: false); break;
@@ -322,17 +342,19 @@ public class Intruder : NPC
             // Heuristic: % of observers that can see the point
             Dictionary<Vector2, float> moves = new Dictionary<Vector2, float>();
             List<Vector2> positions = new List<Vector2>();
-            List<Vector2> observerPos = new List<Vector2>();
+            // For each observer position, keep track of distance from observer
+            Dictionary<Vector2, int> observerPos = new Dictionary<Vector2, int>();
             positions.Add(transform.position);
             foreach (Guard guard in m_guards)
             {
-                observerPos.Add(guard.transform.position);
+                observerPos[guard.transform.position] = 1;
+                //observerPos.Add(guard.transform.position);
             }
             // Iterate over lookahead depth
             for (int i = 0; i < lookAheadDepth; i++)
             {
                 List<Vector2> newMove = new List<Vector2>();
-                List<Vector2> newObs = new List<Vector2>();
+                Dictionary<Vector2, int> newObs = new Dictionary<Vector2, int>();
                 foreach (Vector2 direction in directions)
                 {
                     // Expand over possible intruder movements
@@ -346,10 +368,10 @@ public class Intruder : NPC
                         }
                     }
                     // Expand over possible observer movements
-                    for (int p = 0; p < observerPos.Count; p++)
+                    foreach (Vector2 pos in observerPos.Keys)
                     {
-                        Vector2 newPos = observerPos[p] + direction * lookAheadStepSize;
-                        if (!observerPos.Contains(newPos) && !newObs.Contains(newPos) && !IsObstructed(newPos))
+                        Vector2 newPos = pos + direction * lookAheadStepSize;
+                        if (!observerPos.ContainsKey(newPos) && !newObs.ContainsKey(newPos) && !IsObstructed(newPos))
                         {
                             // If using dead reckoning, search only points within a guard's visibility polygon
                             if (deadReckoning)
@@ -365,19 +387,26 @@ public class Intruder : NPC
                                 }
                                 if (inPolygon)
                                 {
-                                    newObs.Add(newPos);
+                                    // newPos distance from observer = 1 + pos distance
+                                    newObs[newPos] = observerPos[pos] + 1;
+                                    //newObs.Add(newPos);
                                 }
                             }
                             // Otherwise, search all possible observer positions
                             else
                             {
-                                newObs.Add(newPos);
+                                newObs[newPos] = observerPos[pos] + 1;
+                                //newObs.Add(newPos);
                             }
                         }
                     }
                 }
                 positions.AddRange(newMove);
-                observerPos.AddRange(newObs);
+                foreach(Vector2 pos in newObs.Keys)
+                {
+                    observerPos[pos] = newObs[pos];
+                }
+                //observerPos.AddRange(newObs);
             }
             // Calculate visibility for each point in look ahead range
             foreach (Vector2 pos in positions)
@@ -395,7 +424,8 @@ public class Intruder : NPC
                 rescuing = false;
             }
             // If all nearby points are bad, use Wael's hiding spots algorithm
-            else if((rescueWhenSeen && m_state.GetState() is Chased) || (IsVisible(transform.position) && bestMoves.Values.Min() >= 1))
+            //else if((rescueWhenSeen && m_state.GetState() is Chased) || (IsVisible(transform.position) && bestMoves.Values.Min() >= 1))
+            else if ((rescueWhenSeen && m_state.GetState() is Chased) || (IsVisible(transform.position) && bestMoves.Values.Min() >= moves[transform.position]))
             {
                 //Debug.Log("Rescuing Intruder");
                 m_HidingSpots.AssignHidingSpotsFitness(m_guards, World.GetNavMesh());
@@ -427,30 +457,31 @@ public class Intruder : NPC
     }
 
     // Calculate visibility heuristic for DeepLookAhead algorithm
-    float GetVisibilityHeuristic(Vector2 pos, List<Vector2> observerPos)
+    float GetVisibilityHeuristic(Vector2 pos, Dictionary<Vector2, int> observerPos)
     {
         RaycastHit2D hit;
         float visibility = 0;
-        foreach (Vector2 observer in observerPos)
+        foreach (Vector2 observer in observerPos.Keys)
         {
             hit = Physics2D.Linecast(pos, observer, LayerMask.GetMask("Wall"));
             if (hit.collider == null)
             {
-                visibility++;
+                visibility += 1.0f / observerPos[observer];
             }
         }
         // Any visible point is worse than any non-visible point
         if (IsVisible(pos))
         {
             //return 1 + visibility / observerPos.Count;
-            return 1;
+            return 100;
         }
-        return visibility / observerPos.Count;
+        //return visibility / observerPos.Count;
+        return visibility;
     }
 
     // Returns the 'numMoves' best moves, with heuristic based on the visibility of points on the path
     // considerUnseenToSeen: Punish paths that take you from unseen to seen
-    Dictionary<Vector2, float> GetBestMovesByPath(Dictionary<Vector2, float> moves, List<Vector2> observerPos, int numMoves, bool considerUnseenToSeen = true)
+    Dictionary<Vector2, float> GetBestMovesByPath(Dictionary<Vector2, float> moves, Dictionary<Vector2, int> observerPos, int numMoves, bool considerUnseenToSeen = true)
     {
         Dictionary<Vector2, float> bestMoves = new Dictionary<Vector2, float>();
         List<KeyValuePair<Vector2, float>> list = moves.ToList();
@@ -492,7 +523,7 @@ public class Intruder : NPC
                 {
                     if(!IsVisible(path[j]) && IsVisible(path[j + 1]))
                     {
-                        max += 1;
+                        max = 100;
                         break;
                     }
                 }
@@ -505,8 +536,9 @@ public class Intruder : NPC
     // Returns a path from start to end
     List<Vector2> GetPath(Vector2 start, Vector2 end)
     {
-        List<Vector2> path = new List<Vector2> { transform.position };
+        List<Vector2> path = new List<Vector2>();
         PathFinding.GetShortestPath(World.GetNavMesh(), start, end, path);
+        path.Insert(0, transform.position);
         List<Vector2> result = new List<Vector2>();
         for(int i = 0; i < path.Count - 1; i++)
         {
@@ -531,6 +563,17 @@ public class Intruder : NPC
     // Checks if pos can be seen by guards
     bool IsVisible(Vector2 pos)
     {
+        bool visible = false;
+        foreach(Guard guard in m_guards)
+        {
+            if(guard.GetFoV().IsPointInPolygon(pos, true))
+            {
+                visible = true;
+                break;
+            }
+        }
+        return visible;
+        /*
         RaycastHit2D hit;
         foreach (Guard guard in m_guards)
         {
@@ -540,6 +583,6 @@ public class Intruder : NPC
                 return true;
             }
         }
-        return false;
+        return false;*/
     }
 }

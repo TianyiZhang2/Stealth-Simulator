@@ -231,7 +231,9 @@ public enum IntruderPlanner
     // Considers future observer positions based on observers' FoV
     // Calls Wael's algorithm when no good points nearby
     // Heuristic uses unseen -> seen metric
-    DeadReckoning5, 
+    DeadReckoning3,
+    DeadReckoning5,
+    DeadReckoning7,
     DeadReckoning10,
     // Considers all observer positions
     // Calls Wael's algorithm whenever seen
